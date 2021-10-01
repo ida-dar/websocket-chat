@@ -9,17 +9,22 @@ const loginForm = document.getElementById('welcome-form'),
   messageContentInput = document.getElementById('message-content');
 
 /* global vars */
-const userName = '';
+let userName;
 const select = {
   classes: {
     show: 'show',
     message: 'message',
     msgSelf: 'message--self',
+    msgReceived: 'message--received',
     msgAuthor: 'message__author',
     msgContent: 'message__content',
-    msgReceived: 'message--received',
   },
 }
+
+/* WebSocket */
+const socket = io(); // by default, Socket.io assumes that the server with which we will communicate is the same on which the client is launched (here: localhost: 8000)
+socket.on('message', ({ author, content }) => addMessage(author, content)); // listener in socket.io
+socket.open()
 
 /* logic */
 const login = function(e){
@@ -28,7 +33,7 @@ const login = function(e){
   if(userNameInput.value === ''){
     alert('Please enter your username');
   } else {
-    userNameInput.value = userName;
+    userName = userNameInput.value;
     loginForm.classList.remove(select.classes.show);
     messagesSection.classList.add(select.classes.show);
   }
@@ -39,18 +44,20 @@ loginForm.addEventListener('submit', login);
 const sendMessage = function(e){
   e.preventDefault();
 
-  if(!messageContentInput.value){
+  let messageContent = messageContentInput.value;
+
+  if(!messageContent.length) {
     alert('Please enter your message');
   } else {
-    addMessage(userName, messageContentInput.value);
+    addMessage(userName, messageContent);
+    socket.emit('message', { author: userName, content: messageContent });
     messageContentInput.value = '';
   }
 }
 
 const addMessage = function(author, content){
   const message = document.createElement('li');
-  message.classList.add(select.classes.message);
-  message.classList.add(select.classes.msgReceived);
+  message.classList.add(select.classes.message, select.classes.msgReceived);
   if(author === userName) message.classList.add(select.classes.msgSelf);
 
   message.innerHTML = `
