@@ -15,6 +15,7 @@ const select = {
     show: 'show',
     message: 'message',
     msgSelf: 'message--self',
+    msgChatBot: 'message--chatBot',
     msgReceived: 'message--received',
     msgAuthor: 'message__author',
     msgContent: 'message__content',
@@ -24,7 +25,8 @@ const select = {
 /* WebSocket */
 const socket = io(); // by default, Socket.io assumes that the server with which we will communicate is the same on which the client is launched (here: localhost: 8000)
 socket.on('message', ({ author, content }) => addMessage(author, content)); // listener in socket.io
-socket.open()
+socket.on('newUser', ({ userName }) => addMessage('Chat Bot', `${userName} has joined the conversation!`));
+socket.on('userLeft', ({ userName }) => addMessage('Chat Bot', `${userName} has left the conversation... :(`));
 
 /* logic */
 const login = function(e){
@@ -34,8 +36,11 @@ const login = function(e){
     alert('Please enter your username');
   } else {
     userName = userNameInput.value;
+    socket.emit('join', { userName });
     loginForm.classList.remove(select.classes.show);
     messagesSection.classList.add(select.classes.show);
+
+    socket.emit('newUser', { userName });
   }
 }
 
@@ -59,6 +64,7 @@ const addMessage = function(author, content){
   const message = document.createElement('li');
   message.classList.add(select.classes.message, select.classes.msgReceived);
   if(author === userName) message.classList.add(select.classes.msgSelf);
+  if(author === 'Chat Bot') message.classList.add(select.classes.msgChatBot);
 
   message.innerHTML = `
     <h3 class='${select.classes.msgAuthor}'>${userName === author ? 'You' : author }</h3>
