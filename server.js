@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
     }
     users.push(userData);
     console.log(`User added! Its login - ${user.userName}, id – ${socket.id}`);
-    socket.broadcast.emit('newUser', userData.userName);
+    socket.broadcast.emit('newUser', userData);
   });
   socket.on('message', (message) => {
     console.log('Oh, I\'ve got something from ' + socket.id);
